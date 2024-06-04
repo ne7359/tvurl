@@ -150,7 +150,7 @@ jobs:
         git init
         git add .
         git commit -m "Push changes to Gitee"
-        git branch -m  main
+        git branch -m  distA
         git remote add gitee https://gitee.com/${{ secrets.GE_PATH }}.git
         git push -fu gitee main:distA --force  # Push to 'distA' branch on Gitee
         
