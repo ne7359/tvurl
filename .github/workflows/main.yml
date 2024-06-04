@@ -135,17 +135,23 @@ jobs:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
     - name: List contents of dist directory
       run: ls -l ./cat/dist
-    - name: Push JS Config Changes To Gitee
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GE_TOKEN }}
-        repository: ${{ secrets.GE_distA }}
-        directory: ./cat/dist
-        branch: distA
-        force: true
-        github_url: https://gitee.com
+
+    - name: Setup Git Config
+      run: |
+        git config --global user.name ${{ secrets.GH_ACTOR }}
+        git config --global user.email ${{ secrets.GH_EMAIL }}
+
+    - name: Push to Gitee
       env:
-        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+        GITEE_TOKEN: ${{ secrets.GE_TOKEN }}
+      run: |
+        cd ./cat/dist
+        git init
+        git add .
+        git commit -m "Push changes to Gitee"
+        git branch -M main
+        git remote add gitee https://gitee.com/${{ secrets.GE_PATH }}.git
+        git push -fu gitee main:distA --force  # Push to 'distA' branch on Gitee
         
     - name: SSH via Tmate
       if: github.event.inputs.ENABLE_SSH == 'true'
