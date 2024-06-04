@@ -32,16 +32,16 @@ on:
         default: false
         type: boolean
 env:
-  # 待同步的本仓库分支
+  # 待同步的本仓库的上游分支
   BRANCH: master
   # 上游仓库用户名
   UPSTREAM_USER: qist
   # 上游仓库名称
   UPSTREAM_REPO: tvbox
   # GITEE仓库用户名
-  # GITEE_USER: ${{ secrets.GITEE_USER }}
+  GITEE_USER: ${{ secrets.GITEE_USER }}
   # GITEE仓库名称
-  # GITEE_REPO: ${{ secrets.GITEE_REPO }}
+  GITEE_REPO: ${{ secrets.GITEE_REPO }}
   # 连接GITEE的SSH秘钥
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   
