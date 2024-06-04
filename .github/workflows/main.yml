@@ -142,7 +142,7 @@ jobs:
         git config --global user.name ${{ secrets.GH_ACTOR }}
         git config --global user.email ${{ secrets.GH_EMAIL }}
 
-    - name: Push cat dist to Gitee
+    - name: Push to Gitee
       env:
         github_token: ${{ secrets.TOKEN }}
       run: |
