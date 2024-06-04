@@ -11,9 +11,9 @@ on:
       #- '.github/workflows/sync.yml'
       - '*.json'
   # 开启定时触发，把下面两个#去掉开启
-  #schedule:
-    #- cron: 20 4-16/3 * * 1-5
-    #- cron: 20 0-16/3 * * 0,6
+  schedule:
+    - cron: 20 4-16/3 * * 1-5
+    - cron: 20 0-16/3 * * 0,6
   workflow_dispatch:
     inputs:
       ENABLE_FORCE_SYNC_UPSTREAM:
