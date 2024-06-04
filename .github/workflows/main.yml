@@ -133,7 +133,8 @@ jobs:
         github_url: https://gitee.com
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
-
+    - name: List contents of dist directory
+      run: ls -l ./cat/dist
     - name: Push JS Config Changes To Gitee
       uses: ad-m/github-push-action@master
       with:
