@@ -139,7 +139,7 @@ jobs:
         git config --global user.name ${{ secrets.GH_ACTOR }}
         git config --global user.email ${{ secrets.GH_EMAIL }}
 
-    - name: Push cat to Gitee
+    - name: Push cat dist to Gitee
       env:
         github_token: ${{ secrets.TOKEN }}
       run: |
@@ -152,19 +152,19 @@ jobs:
         # Use the token in the URL for HTTPS push
         git push -fu gitee distA:distA --force
         
-    - name: SSH via Tmate
-      if: github.event.inputs.ENABLE_SSH == 'true'
-      uses: P3TERX/ssh2actions@main
+    #- name: SSH via Tmate
+      #if: github.event.inputs.ENABLE_SSH == 'true'
+      #uses: P3TERX/ssh2actions@main
       
-    - name: Github Sync to Gitee
-      if:  env.SSH_PRIVATE_KEY && steps.compareHash.outputs.cache-hit != 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_GITEE == 'true'
-      continue-on-error: true
-      uses: wearerequired/git-mirror-action@master
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      with:
-        source-repo: "git@github.com:${{github.repository}}.git"
-        destination-repo: "git@gitee.com:${{ secrets.GITEE_USER }}/${{ secrets.GITEE_REPO }}.git"
+    #- name: Github Sync to Gitee
+      #if:  env.SSH_PRIVATE_KEY && steps.compareHash.outputs.cache-hit != 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_GITEE == 'true'
+      #continue-on-error: true
+      #uses: wearerequired/git-mirror-action@master
+      #env:
+        #SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #with:
+        #source-repo: "git@github.com:${{github.repository}}.git"
+        #destination-repo: "git@gitee.com:${{ secrets.GITEE_USER }}/${{ secrets.GITEE_REPO }}.git"
         
     - name: Delete Workflow Runs
       uses: Mattraks/delete-workflow-runs@main
