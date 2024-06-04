@@ -148,7 +148,7 @@ jobs:
         git add .
         git commit -m "Push changes to Gitee"
         git branch -M distA
-        git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_PATH }}.git
+        git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_DISTA }}.git
         # Use the token in the URL for HTTPS push
         git push -fu gitee distA:distA --force
         
