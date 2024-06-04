@@ -39,8 +39,6 @@
 
 （12） jsm.json 来自js.json 修改 家庭电视可用 主要删除YouTube 直播。
 
-（13）电视安卓版本低于4.4以下下载apk：<https://github.com/o0HalfLife0o/TVBoxOSC/releases/download/20230902-0114/TVBox_q215613905_20230902-0114.apk>
-
 猫影视使用github 配置
 
  配置教程：<https://omii.top/1296.html>
