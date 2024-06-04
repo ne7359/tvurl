@@ -128,7 +128,7 @@ jobs:
         github_token: ${{ secrets.GE_TOKEN }}
         repository: ${{ secrets.GE_PATH }}
         directory: .
-        branch: js
+        branch: master
         force: true
         github_url: https://gitee.com
       env:
