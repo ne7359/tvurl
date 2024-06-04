@@ -1,0 +1,47 @@
+#=======================================================================================================================
+# Description: Delete Workdflows
+#=======================================================================================================================
+
+name: Delete Workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      KEEP_DAY:
+        description: 'Workflow保留天数'
+        required: true
+        default: '0'
+        type: string
+      KEEP_MININUM_RUNS:
+        description: 'Workflow最少保留数量'
+        required: true
+        default: '0'
+        type: string
+  #schedule:
+   #- cron: 0 20 * * *
+   
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id || ! github.event.sender.id
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+    - name: Parse settings
+      run: |
+        INPUTS_KEEP_DAY="${{ github.event.inputs.KEEP_DAY }}"
+        INPUTS_KEEP_MININUM_RUNS="${{ github.event.inputs.KEEP_MININUM_RUNS }}"
+
+        [ -n "$INPUTS_KEEP_DAY" ] && KEEP_DAY="$INPUTS_KEEP_DAY" || KEEP_DAY="0"
+        [ -n "$INPUTS_KEEP_MININUM_RUNS" ] && KEEP_MININUM_RUNS="$INPUTS_KEEP_MININUM_RUNS" || KEEP_MININUM_RUNS="0"
+
+        echo "KEEP_DAY=$KEEP_DAY" >> $GITHUB_ENV
+        echo "KEEP_MININUM_RUNS=$KEEP_MININUM_RUNS" >> $GITHUB_ENV
+        
+    - name: Delete Older Workflow Runs
+      uses: Mattraks/delete-workflow-runs@main
+      with:
+        token: ${{ github.token }}
+        retain_days: ${{ env.KEEP_DAY }}
+        keep_minimum_runs: ${{ env.KEEP_MININUM_RUNS }}
