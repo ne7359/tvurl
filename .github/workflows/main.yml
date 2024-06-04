@@ -121,6 +121,18 @@ jobs:
           git push -f origin
           #git push -f origin $BRANCH
         fi
+
+    - name: Push JS Config Changes To Gitee
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_PATH }}
+        directory: .
+        branch: js
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
         
     - name: SSH via Tmate
       if: github.event.inputs.ENABLE_SSH == 'true'
