@@ -133,6 +133,18 @@ jobs:
         github_url: https://gitee.com
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+
+    - name: Push JS Config Changes To Gitee
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_distA }}
+        directory: ./cat/dist
+        branch: distA
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
         
     - name: SSH via Tmate
       if: github.event.inputs.ENABLE_SSH == 'true'
