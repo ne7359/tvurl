@@ -1,3 +1,7 @@
+## nginx配置 dav
+
+
+参考文档：https://forevertime.site/nginx-setup-webdav-for-zotero-sync/
 
 ## 自己配置
 
