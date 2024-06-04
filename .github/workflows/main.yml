@@ -144,6 +144,7 @@ jobs:
     - name: Push to Gitee
       env:
         GITEE_TOKEN: ${{ secrets.GE_TOKEN }}
+        github_token: ${{ secrets.TOKEN }}
       run: |
         cd ./cat/dist
         git init
