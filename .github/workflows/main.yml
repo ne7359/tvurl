@@ -134,6 +134,9 @@ jobs:
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
 
+    - name: List contents of dist directory
+      run: ls -l ./cat/dist
+
     - name: Setup Git Config
       run: |
         git config --global user.name ${{ secrets.GH_ACTOR }}
