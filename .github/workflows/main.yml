@@ -139,10 +139,9 @@ jobs:
     - name: Push dist To Gitee
       uses: ad-m/github-push-action@master
       with:
-        cd ./cat/dist
         github_token: ${{ secrets.GE_TOKEN }}
         repository: ${{ secrets.GE_DISTA }}
-        directory: .
+        directory: ./cat/dist
         branch: distA
         force: true
         github_url: https://gitee.com
