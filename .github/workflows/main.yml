@@ -62,8 +62,10 @@ jobs:
         shopt -s extglob
         set +e
         sudo timedatectl set-timezone "Asia/Shanghai"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        #git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        #git config --global user.name "github-actions[bot]"
 
     - name: Get Commit Hash
       id: getHash
@@ -134,23 +136,31 @@ jobs:
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
 
-    #- name: Setup Git Config
-      #run: |
-        #git config --global user.name ${{ secrets.GH_ACTOR }}
-        #git config --global user.email ${{ secrets.GH_EMAIL }}
-
-    - name: Push to Gitee
-      env:
-        github_token: ${{ secrets.TOKEN }}
-      run: |
+    - name: Push dist To Gitee
+      uses: ad-m/github-push-action@master
+      with:
         cd ./cat/dist
-        git init
-        git add .
-        git commit -m "Push changes to Gitee"
-        git branch -M distA
-        git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_DISTA }}.git
-        # Use the token in the URL for HTTPS push
-        git push -fu gitee distA:distA --force
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_DISTA }}
+        directory: .
+        branch: distA
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+
+    #- name: Push to Gitee   # 指定推送cat/dist目录
+      #env:
+        #github_token: ${{ secrets.TOKEN }}
+      #run: |
+        #cd ./cat/dist
+        #git init
+        #git add .
+        #git commit -m "Push changes to Gitee"
+        #git branch -M distA
+        #git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_DISTA }}.git
+        ## Use the token in the URL for HTTPS push
+        #git push -fu gitee distA:distA --force
         
     #- name: SSH via Tmate
       #if: github.event.inputs.ENABLE_SSH == 'true'
