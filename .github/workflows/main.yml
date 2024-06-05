@@ -134,13 +134,16 @@ jobs:
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
 
+    - name: Syn dist
+      run: |
+        cd ./cat/dist
+
     - name: Push dist To Gitee
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GE_TOKEN }}
         repository: ${{ secrets.GE_DISTA }}
         directory: ./
-        local_path: ./cat/dist
         branch: distA
         force: true
         github_url: https://gitee.com
