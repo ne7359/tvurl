@@ -134,11 +134,7 @@ jobs:
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
 
-    - name: Syn dist
-      run: |
-        cd ./cat/dist
-
-    - name: Push dist To Gitee
+    - name: Push JS Config Changes To Gitee cat
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GE_TOKEN }}
