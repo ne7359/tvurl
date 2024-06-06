@@ -139,7 +139,7 @@ jobs:
       with:
         github_token: ${{ secrets.GE_TOKEN }}
         repository: ${{ secrets.GE_DISTA }}
-        directory: ./cat/dist
+        directory: .
         branch: distA
         force: true
         github_url: https://gitee.com
