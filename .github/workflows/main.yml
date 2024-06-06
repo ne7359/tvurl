@@ -122,19 +122,6 @@ jobs:
           #git push -f origin $BRANCH
         fi
 
-    - name: Push to Gitee   # 指定推送cat/dist目录
-      env:
-        github_token: ${{ secrets.TOKEN }}
-      run: |
-        cd ./cat/dist
-        git init
-        git add .
-        git commit -m "Push changes to Gitee"
-        git branch -M distA
-        git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_DISTA }}.git
-        # Use the token in the URL for HTTPS push
-        git push -fu gitee distA:distA --force
-
     - name: Push JS Config Changes To Gitee
       uses: ad-m/github-push-action@master
       with:
@@ -146,6 +133,31 @@ jobs:
         github_url: https://gitee.com
       env:
         GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+
+    - name: Push JS Config Changes To Gitee cat
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_DISTA }}
+        directory: .
+        branch: distA
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+
+    #- name: Push to Gitee   # 指定推送cat/dist目录
+      #env:
+        #github_token: ${{ secrets.TOKEN }}
+      #run: |
+        #cd ./cat/dist
+        #git init
+        #git add .
+        #git commit -m "Push changes to Gitee"
+        #git branch -M distA
+        #git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GE_TOKEN }}@gitee.com/${{ secrets.GE_DISTA }}.git
+        ## Use the token in the URL for HTTPS push
+        #git push -fu gitee distA:distA --force
         
     #- name: SSH via Tmate
       #if: github.event.inputs.ENABLE_SSH == 'true'
