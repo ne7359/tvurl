@@ -1,0 +1,146 @@
+#
+# This is free software, lisence use MIT.
+# 
+
+name: Sync
+on:
+  push:
+    branches:
+      - master
+    paths:
+      #- '.github/workflows/sync.yml'
+      - '*.json'
+  # 开启定时触发，把下面两个#去掉开启
+  schedule:
+    - cron: 20 4-16/6 * * 1-5
+    - cron: 20 0-16/6 * * 0,6
+  workflow_dispatch:
+    inputs:
+      ENABLE_FORCE_SYNC_UPSTREAM:
+        description: '强制从上游同步'
+        required: false
+        default: false
+        type: boolean
+      ENABLE_FORCE_SYNC_GITEE:
+        description: '强制同步至Gitee'
+        required: false
+        default: false
+        type: boolean
+      ENABLE_SSH:
+        description: '开启SSH连接'
+        required: false
+        default: false
+        type: boolean
+env:
+  # 待同步的本仓库分支
+  BRANCH: master
+  # 上游仓库用户名
+  UPSTREAM_USER: qist
+  # 上游仓库名称
+  UPSTREAM_REPO: tvbox
+  # GITEE仓库用户名
+  # GITEE_USER: ${{ secrets.GITEE_USER }}
+  # GITEE仓库名称
+  # GITEE_REPO: ${{ secrets.GITEE_REPO }}
+  # 连接GITEE的SSH秘钥
+  #SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  
+jobs:
+  merge:
+    if: github.event.repository.owner.id == github.event.sender.id || ! github.event.sender.id
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        # ref: $BRANCH
+        fetch-depth: 0
+
+    - name: Set Git Identity
+      run : |
+        shopt -s extglob
+        set +e
+        sudo timedatectl set-timezone "Asia/Shanghai"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Get Commit Hash
+      id: getHash
+      run: |
+        GithubRepoDir=${{ env.UPSTREAM_USER }}-${{ env.UPSTREAM_REPO }}
+        sudo mkdir -p ~/${GithubRepoDir}
+        sudo chown ${USER}:${GROUPS} ~/${GithubRepoDir}
+        git clone --depth 1 https://github.com/${{ env.UPSTREAM_USER }}/${{ env.UPSTREAM_REPO }} ~/$GithubRepoDir
+        
+        cd ~/$GithubRepoDir
+        commitHash=$(git rev-parse HEAD)
+        commitMessage=$(git log --pretty=format:"%s" -n 1)
+        echo "commitHash=$commitHash" >> $GITHUB_ENV
+        echo "commitMessage=$commitMessage" >> $GITHUB_ENV
+        echo "GithubRepoDir=$GithubRepoDir" >> $GITHUB_ENV
+        
+    - name: Compare Commit Hash
+      id: compareHash
+      uses: actions/cache@v4
+      with:
+        path: ~/.commitHash
+        key: ${{ env.GithubRepoDir }}-${{ env.commitHash }}
+
+    - name: Generate Commit Hash
+      if: steps.compareHash.outputs.cache-hit != 'true'
+      run: |
+        echo ${{ env.commitHash }} | tee ~/.commitHash
+        echo "::notice title=UpstreamRepository::https://github.com/${{ env.UPSTREAM_USER }}/${{ env.UPSTREAM_REPO }}"
+        echo "::notice title=UpstreamCommitHash::${{ env.commitHash }}"
+        echo "::notice title=UpstreamCommitMessage::${{ env.commitMessage }}"
+
+    - name: Syn Upstream
+      if: steps.compareHash.outputs.cache-hit != 'true' || github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true'
+      run: |
+        git rm -r --cached * >/dev/null 2>&1 &
+        ls $GITHUB_WORKSPACE | grep -v "README.md\|api.json" | xargs sudo rm -rf {}
+        
+        for file in $(ls ~/${{ env.GithubRepoDir }} | grep -v "README.md"); do
+          sudo cp -rf ~/${{ env.GithubRepoDir }}/$file $GITHUB_WORKSPACE
+        done
+        
+    - name: Modify Json Files
+      continue-on-error: true
+      if: steps.compareHash.outputs.cache-hit != 'true' || github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true'
+      run: |
+        source .github/scripts/tvbox.sh
+
+    - name: Apply
+      continue-on-error: true
+      if: steps.compareHash.outputs.cache-hit != 'true' || github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true'
+      run: |
+        git add .
+        if [ -n "$(git status -s)" ]; then
+          git commit -m "${{ env.commitMessage }}"
+          git push -f origin
+          #git push -f origin $BRANCH
+        fi
+        
+    #- name: SSH via Tmate
+      #if: github.event.inputs.ENABLE_SSH == 'true'
+      #uses: P3TERX/ssh2actions@main
+      
+    #- name: Github Sync to Gitee
+      #if:  env.SSH_PRIVATE_KEY && steps.compareHash.outputs.cache-hit != 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_UPSTREAM == 'true' || env.SSH_PRIVATE_KEY && github.event.inputs.ENABLE_FORCE_SYNC_GITEE == 'true'
+      #continue-on-error: true
+      #uses: wearerequired/git-mirror-action@master
+      #env:
+        #SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #with:
+        #source-repo: "git@github.com:${{github.repository}}.git"
+        #destination-repo: "git@gitee.com:${{ secrets.GITEE_USER }}/${{ secrets.GITEE_REPO }}.git"
+        
+    - name: Delete Workflow Runs
+      uses: Mattraks/delete-workflow-runs@main
+      continue-on-error: true
+      with:
+        token: ${{ github.token }}
+        repository: ${{github.repository}}
+        retain_days: 0
+        keep_minimum_runs: 2
