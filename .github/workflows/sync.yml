@@ -39,9 +39,9 @@ env:
   # 上游仓库名称
   UPSTREAM_REPO: tvbox
   # GITEE仓库用户名
-  # GITEE_USER: ${{ secrets.GITEE_USER }}
+  GITEE_USER: ${{ secrets.GITEE_USER }}
   # GITEE仓库名称
-  # GITEE_REPO: ${{ secrets.GITEE_REPO }}
+  GITEE_REPO: ${{ secrets.GITEE_REPO }}
   # 连接GITEE的SSH秘钥
   #SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   
@@ -121,6 +121,30 @@ jobs:
           git push -f origin
           #git push -f origin $BRANCH
         fi
+
+    - name: Push JS Config Changes To Gitee
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_PATH }}
+        directory: .
+        branch: master
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
+
+    - name: Push JS Config Changes To Gitee cat
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GE_TOKEN }}
+        repository: ${{ secrets.GE_DISTA }}
+        directory: .
+        branch: distA
+        force: true
+        github_url: https://gitee.com
+      env:
+        GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
         
     #- name: SSH via Tmate
       #if: github.event.inputs.ENABLE_SSH == 'true'
@@ -143,4 +167,4 @@ jobs:
         token: ${{ github.token }}
         repository: ${{github.repository}}
         retain_days: 0
-        keep_minimum_runs: 2
+        keep_minimum_runs: 1
