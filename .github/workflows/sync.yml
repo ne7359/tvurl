@@ -35,9 +35,9 @@ env:
   # 待同步的本仓库分支
   BRANCH: master
   # 上游仓库用户名
-  UPSTREAM_USER: qist
+  UPSTREAM_USER: ${{ secrets.UPSTREAM_USER }}
   # 上游仓库名称
-  UPSTREAM_REPO: tvbox
+  UPSTREAM_REPO: ${{ secrets.UPSTREAM_REPO }}
   # GITEE仓库用户名
   GITEE_USER: ${{ secrets.GITEE_USER }}
   # GITEE仓库名称
