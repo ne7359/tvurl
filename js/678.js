@@ -1,7 +1,7 @@
 var rule = {
     title:'闪雷影视',
     编码:'gb2312',
-    host:'http://121.16.47.94:5003',
+    host:'http://223.100.63.144:82',
     url:'/www/List.asp?classid=fyclass&searchword=&page=fypage',
     filterable:0,//是否启用分类筛选,
     class_name:'电影&电视剧&综艺&动漫&音乐',
@@ -14,7 +14,7 @@ var rule = {
     },
     play_parse:true,
     lazy:$js.toString(() => {
-        var html = rule.host + '/PlayMov.asp?ClassId=' + input.split(",")[2] + '&video=2&exe=0&down=0&movNo=' + input.split(",")[3] + '&vgver=undefined&ClientIP=27.188.68.230'
+        var html = rule.host + '/PlayMov.asp?ClassId=' + input.split(",")[2] + '&video=2&exe=0&down=0&movNo=' + input.split(",")[3] + '&vgver=undefined&ClientIP=121.16.47.94'
         var url = request(html).match(/push\('(.*?)'/)[1]
         url = url.replace(/https?:\/\/(?:[\d.]+|[\w\-]+)(?::\d+)?\//, rule.host + '/');
         input = {
