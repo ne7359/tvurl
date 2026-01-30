@@ -5,8 +5,8 @@ import json
 
 # 下载伪 JSON 文本
 def fetch_raw_json():
-    url = "https://ua.fongmi.eu.org/box.php?url=https%3A%2F%2Fwww.xn--sss604efuw.com%2Ftv"
-    resp = requests.get(url, timeout=10)
+    url = "https://www.xn--sss604efuw.com/jm/jiemi.php?url=http%3A%2F%2Fwww.%E9%A5%AD%E5%A4%AA%E7%A1%AC.com%2Ftv"
+    resp = requests.get(url, timeout=30)
     resp.encoding = 'utf-8'
     return resp.text
 
@@ -18,7 +18,7 @@ def extract_and_save_spider(json_text):
     full_spider = match.group(1)
     spider_url = full_spider.split(";")[0]
     print(f"📥 下载 spider 文件: {spider_url}")
-    resp = requests.get(spider_url, timeout=10)
+    resp = requests.get(spider_url, timeout=30)
     with open("fan.txt", "wb") as f:
         f.write(resp.content)
     print("✅ 已保存为 fan.txt")
