@@ -7,25 +7,13 @@ import json
 session = requests.Session()
 COMMON_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "sec-ch-ua": '"Google Chrome";v="120", "Chromium";v="120", "Not:A-Brand";v="99"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"Windows"',
-    "Sec-Fetch-Site": "same-origin",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-User": "?1",
-    "Sec-Fetch-Dest": "document",
 }
 session.headers.update(COMMON_HEADERS)
 session.cookies.set("visited", "1")  # 提高拟真度
 
 # 下载伪 JSON 文本
 def fetch_raw_json():
-    url = "https://www.xn--sss604efuw.com/jm/jiemi.php?url=http%3A%2F%2Fwww.%E9%A5%AD%E5%A4%AA%E7%A1%AC.com%2Ftv"
+    url = "https://ua.fongmi.eu.org/box.php?url=https%3A%2F%2Fwww.xn--sss604efuw.com%2Ftv"
     resp = session.get(url, timeout=30, allow_redirects=True)
     resp.encoding = 'utf-8'
     return resp.text
@@ -45,17 +33,26 @@ def extract_and_save_spider(json_text):
 
 # 删除不需要的 sites 项 + 替换链接
 def clean_data(raw_text):
-    raw_text = raw_text.replace(
-        "https://gh-proxy.net/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main",
-        "./FTY"
+    # 统一把各种 GitHub 代理壳替换掉
+    raw_text = re.sub(
+        r'https?://[^/]+/https://raw\.githubusercontent\.com/fantaiying7/EXT/refs/heads/main',
+        './FTY',
+        raw_text
     )
+
     data = demjson.decode(raw_text)
 
     keywords = [
         "豆", "饭太硬", "广告", "PanSso", "YpanSo", "xzso", "米搜", "夸搜", "Aliso", "YiSo"
     ]
+
     original_count = len(data.get("sites", []))
-    data["sites"] = [s for s in data["sites"] if not any(kw in s.get("key", "") or kw in s.get("name", "") for kw in keywords)]
+
+    data["sites"] = [
+        s for s in data["sites"]
+        if not any(kw in s.get("key", "") or kw in s.get("name", "") for kw in keywords)
+    ]
+
     print(f"🧹 清理 {original_count - len(data['sites'])} 条 sites")
     return data
 
