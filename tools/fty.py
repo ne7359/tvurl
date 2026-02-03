@@ -2,6 +2,7 @@ import requests
 import re
 import demjson3 as demjson
 import json
+import hashlib
 
 # 创建全局 session 并设置浏览器 UA
 session = requests.Session()
@@ -31,6 +32,14 @@ def extract_and_save_spider(json_text):
         f.write(resp.content)
     print("✅ 已保存为 fan.txt")
 
+# 计算本地文件 MD5
+def get_md5(filepath):
+    md5 = hashlib.md5()
+    with open(filepath, "rb") as f:
+        while chunk := f.read(8192):
+            md5.update(chunk)
+    return md5.hexdigest()
+
 # 删除不需要的 sites 项 + 替换链接
 def clean_data(raw_text):
     # 统一把各种 GitHub 代理壳替换掉
@@ -42,18 +51,18 @@ def clean_data(raw_text):
 
     data = demjson.decode(raw_text)
 
-    keywords = [
-        "豆", "饭太硬", "广告", "PanSso", "YpanSo", "xzso", "米搜", "夸搜", "Aliso", "YiSo"
-    ]
+    # keywords = [
+    #     "豆", "饭太硬", "广告", "PanSso", "YpanSo", "xzso", "米搜", "夸搜", "Aliso", "YiSo"
+    # ]
 
-    original_count = len(data.get("sites", []))
+    # original_count = len(data.get("sites", []))
 
-    data["sites"] = [
-        s for s in data["sites"]
-        if not any(kw in s.get("key", "") or kw in s.get("name", "") for kw in keywords)
-    ]
+    # data["sites"] = [
+    #     s for s in data["sites"]
+    #     if not any(kw in s.get("key", "") or kw in s.get("name", "") for kw in keywords)
+    # ]
 
-    print(f"🧹 清理 {original_count - len(data['sites'])} 条 sites")
+    # print(f"🧹 清理 {data - len(data['sites'])} 条 sites")
     return data
 
 # 格式美化保存
@@ -85,6 +94,10 @@ if __name__ == "__main__":
         raw_text = fetch_raw_json()
         extract_and_save_spider(raw_text)
         data = clean_data(raw_text)
+        # 更新 spider 为本地 fan.txt + 最新 MD5
+        md5_value = get_md5("fan.txt")
+        data["spider"] = f"./jar/fan.txt;md5;{md5_value}"
+        print(f"🔄 spider 已更新为: {data['spider']}")
         save_json(data)
     except Exception as e:
         print(f"❌ 错误: {e}")
