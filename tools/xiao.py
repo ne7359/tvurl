@@ -8,7 +8,7 @@ primary_jar_path = "jar/spider.jar"
 fallback_jar_path = "../xiaosa/spider.jar"
 
 # 需要删除的站点 key（在此填写即可删除）
-remove_keys = {"版本信息","腾讯视频","优酷视频","芒果视频","爱奇艺","三六零","豆瓣"}   # 可以加多个，例如 {"巴士动漫", "电影牛"}
+remove_keys = {"版本信息","腾讯视频","优酷视频","芒果视频","爱奇艺","三六零","豆瓣","push_agent","配置中心","本地","预告"}   # 可以加多个，例如 {"巴士动漫", "电影牛"}
 
 # 保存 JSON 文件（折叠字典数组为单行，空数组和基础数组一行）
 class CompactJSONEncoder(json.JSONEncoder):
@@ -119,10 +119,10 @@ if __name__ == "__main__":
     dianshi["sites"] = insert_sites_at_key(dianshi_sites, filtered_sites, "cbh")
 
     # 6. 删除指定的站点
-    before_count = len(dianshi["sites"])
-    dianshi["sites"] = remove_sites(dianshi["sites"], remove_keys)
-    after_count = len(dianshi["sites"])
-    print(f"✅ 删除了 {before_count - after_count} 个指定站点: {', '.join(remove_keys)}")
+    # before_count = len(dianshi["sites"])
+    # dianshi["sites"] = remove_sites(dianshi["sites"], remove_keys)
+    # after_count = len(dianshi["sites"])
+    # print(f"✅ 删除了 {before_count - after_count} 个指定站点: {', '.join(remove_keys)}")
 
     # 7. 设置 spider 为 jar+md5（统一在输出文件中）
     jar_path = primary_jar_path if os.path.exists(primary_jar_path) else fallback_jar_path

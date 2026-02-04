@@ -75,9 +75,9 @@ def main():
     data = load_json(json_path)
     sites = data.get("sites", [])
 
-    paths = iter_paths_between(sites, "cbh", "push_agent")
+    paths = iter_paths_between(sites, "cbh", "奇优")
     if not paths:
-        print("⚠️ 未找到 cbh 到 push_agent 之间的 ./XBPQ/ 路径")
+        print("⚠️ 未找到 cbh 到 奇优 之间的 ./XBPQ/ 路径")
         return
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
