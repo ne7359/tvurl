@@ -1,5 +1,5 @@
 {
-  "spider": "./jar/spider.jar;md5;a1eed7bae8585dad4acd6c2bd33c8e49",
+  "spider": "./jar/spider.jar;md5;58c569097fe9202e659a53d06f6ac889",
   "lives": [
     {"name": "live","boot": false,"type": 0,"url": "./tv.txt","playerType": 2,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"}
   ],
@@ -15,6 +15,7 @@
     {"key": "fyyy","name": "飞宇影院","type": 3,"api": "csp_XBPQ","searchable": 1,"quickSearch": 1,"filterable": 1,"changeable": 1,"ext": {"分类url": "http://ntfeiyu.com/nt/{cateId}/area/{area}/by/{by}/class/{class}/lang/{lang}/page/{catePg}/year/{year}.html","分类": "电影$1#电视剧$2#综艺$3#动漫$4"},"header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "cbh","name": "茶杯狐","type": 3,"api": "csp_XBPQ","searchable": 1,"quickSearch": 1,"filterable": 1,"changeable": 1,"ext": {"分类url": "https://www.cupfox7.com/cupfox/{cateId}/area/{area}/by/{by}/class/{class}/lang/{lang}/page/{catePg}/year/{year}.html","分类": "电影$fenlei1#电视剧$fenlei2#综艺$fenlei3#动漫$fenlei4"},"header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "热播影视","name": "热播｜APP","type": 3,"api": "csp_AppRJ","searchable": 1,"quickSearch": 1,"filterable": 0,"ext": {"url": "http://v.rbotv.cn"}},
+    {"key": "韩圈","name": "韩圈｜APP","type": 3,"api": "csp_Hxq","ext": "https://fishapi.wya6.com/fish/fishhxq.php"},
     {"key": "木瓜","name": "木瓜｜APP","type": 3,"api": "csp_AppFox","searchable": 1,"changeable": 1,"ext": {"host": "http://www.yezitv.top/dtym.json","ver": 2}},
     {"key": "花柳","name": "花柳｜APP","type": 3,"api": "csp_AppFox","searchable": 1,"changeable": 1,"ext": {"host": "http://nico.oiio.fun","ver": 2}},
     {"key": "麒麟","name": "麒麟｜APP","type": 3,"api": "csp_AppFox","searchable": 1,"changeable": 1,"ext": {"host": "https://qh.70qh.top","ver": 2}},
@@ -75,7 +76,7 @@
     {"key": "零度影视","name": "零度｜影视","type": 3,"api": "csp_Lingdu","searchable": 1,"filterable": 1},
     {"key": "厂长影视","name": "厂长｜影视","type": 3,"api": "csp_Czsapp","searchable": 1,"quickSearch": 1,"filterable": 1,"ext": "https://www.czzymovie.com"},
     {"key": "金牌影视","name": "金牌｜影视","type": 3,"api": "csp_Jpys","ext": "https://m.610pkea.com,https://y2s52n7.com,https://m.hkybqufgh.com,https://m.sizhengxt.com,https://m.9zhoukj.com,https://m.sizhengxt.com,https://m.jiabaide.cn"},
-    {"key": "云播影视","name": "云播｜影视","type": 3,"api": "csp_Tvyb","ext": "http://www.viptv05.com"},
+    {"key": "云播影视","name": "云播｜影视","type": 3,"api": "csp_Tvyb","ext": "http://www.tvyb03.com"},
     {"key": "苹果影视","name": "苹果｜影视","type": 3,"api": "csp_LiteApple"},
     {"key": "饺子影视","name": "饺子｜影视","type": 3,"api": "csp_Jiaozi"},
     {"key": "瓜子影视","name": "瓜子｜影视","type": 3,"api": "csp_Gz360"},
