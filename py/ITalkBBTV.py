@@ -3,9 +3,8 @@
 """
 ITalkBB TV - 海外华人影视
 """
-import re
-import json
-import subprocess
+import time
+import uuid
 import requests
 from base.spider import Spider
 
@@ -15,279 +14,240 @@ class Spider(Spider):
         return 'ITalkBB TV'
 
     def init(self, extend=""):
+        self._login()
+
+    def isVideoFormat(self, url):
+        pass
+
+    def manualVideoCheck(self):
+        pass
+
+    def destroy(self):
         pass
 
     def __init__(self):
+        self.name = 'ITalkBB TV'
         self.host = 'https://www.italkbbtv.com'
+        self.api = 'https://api.italkbbtv.com/classictv'
+        self.token = ''
         self.header = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
-            'Referer': 'https://www.italkbbtv.com/'
+            'Referer': 'https://www.italkbbtv.com/',
+            'Origin': 'https://www.italkbbtv.com',
         }
         self.timeout = 20
+        self._token = ''
+        self._expire = 0
+        self._device_id = str(uuid.uuid4())
 
-        self.class_names = '电视剧&电影&综艺&动画'.split('&')
-        self.class_urls = 'drama/62c670dc1dca2d424404499c&movie/62ac4ef36e0b5a13ed291544&variety/62ce7417c7daaa4a5d3fea14&cartoon/62ac4e6e4beefe53586478ca'.split('&')
-
-        self.key_map = {
-            'drama': 'dramaSeriesLists',
-            'movie': 'movieSeriesLists',
-            'variety': 'varietySeriesLists',
-            'cartoon': 'cartoonSeriesLists',
-            'shorts': 'shortsSeriesLists'
+    def _login(self):
+        now = int(time.time() * 1000)
+        if self._token and now < self._expire - 60000:
+            return
+        data = {
+            'login_type': 'password', 'grant_type': 'tv_login_in',
+            'device_id': self._device_id,
+            'login_name': f'{self._device_id}@web.visitor.italkbb.com',
+            'password': 'visitor_secret',
+            'device_type': 'web', 'device_model': 'Chrome148', 'app_version': '305013',
         }
-
-    def get_nuxt_data(self, html):
-        """从HTML中提取并解析__NUXT__数据"""
-        m = re.search(r'window\.__NUXT__=([\s\S]*?);</script>', html)
-        if not m:
-            return None
-        js_expr = m.group(1)
         try:
-            result = subprocess.run(
-                ['node', '-e', f'process.stdout.write(JSON.stringify({js_expr}))'],
-                capture_output=True, timeout=15
-            )
-            if result.returncode == 0 and result.stdout:
-                return json.loads(result.stdout)
-        except Exception as e:
-            print(f"get_nuxt_data error: {e}")
+            r = requests.post('https://api.italkbbtv.com/auth/v1/token', headers=self.header, data=data, timeout=self.timeout)
+            if r.status_code == 200:
+                self._set_token(r.json().get('access', {}))
+        except:
+            pass
+
+    def _set_token(self, acc):
+        self._token = acc.get('token', '')
+        self._expire = acc.get('expire_time', 0)
+        if self._token:
+            self.header['Authorization'] = 'Bearer ' + self._token
+
+        self.cats = {
+            'drama': ('62ac4df64beefe53586474ff', '62c670dc1dca2d424404499c'),
+            'movie': ('62ac4e644beefe535864785c', '62ac4ef36e0b5a13ed291544'),
+            'variety': ('62ac4e1f4beefe5358647642', '62ce7417c7daaa4a5d3fea14'),
+            'cartoon': ('62ac4e6a4beefe53586478a5', '62ac4e6e4beefe53586478ca'),
+            'shorts': ('66a9e3e49f7e8378f2152312', '66b1d25cf2dde82c215f9b59'),
+        }
+        self.class_names = '电视剧&电影&综艺&动画&短剧&直播频道'.split('&')
+        self.class_urls = 'drama&movie&variety&cartoon&shorts&live'.split('&')
+
+    def _api_get(self, path, params=None):
+        self._login()
+        try:
+            r = requests.get(self.api + path, headers=self.header, params=params, timeout=self.timeout)
+            if r.status_code == 200:
+                return r.json()
+        except:
+            pass
         return None
 
-    def pick_pic(self, obj):
-        """提取图片URL"""
-        if not obj:
-            return ''
-        images = obj.get('images', {}) or {}
+    def _get_live_stream(self, ch_id):
+        self._login()
+        try:
+            r = requests.get('https://api.italkbbtv.com/playauth/v1/live', headers=self.header, params={'series_id': ch_id, 'hl': 'zh_CN'}, timeout=self.timeout)
+            if r.status_code == 200:
+                return r.json().get('manifest', '')
+        except:
+            pass
+        return ''
+
+    def _make_vod(self, s):
+        sid = s.get('id', '')
+        name = s.get('name', '')
+        images = s.get('images', {}) or {}
         poster = (images.get('poster') or [''])[0] if images.get('poster') else ''
         landscape = (images.get('landscape') or [''])[0] if images.get('landscape') else ''
-        return poster or landscape or obj.get('imgUrl', '')
-
-    def join_stars(self, stars):
-        """拼接演员/导演名"""
-        if not isinstance(stars, list):
-            return ''
-        return '/'.join([s.get('name', '') for s in stars if s.get('name')])
-
-    def make_vod_from_series(self, series, fallback_name=''):
-        """从series对象构建vod字典"""
-        if not series:
-            return None
-        category_id = series.get('category_id', [])
-        if isinstance(category_id, list):
-            category_id = category_id[0] if category_id else ''
-        root_id = series.get('root_id', '')
-        series_id = series.get('id', '') or series.get('series_id', '')
-        route = 'shortsPlay' if root_id == '66b1d25cf2dde82c215f9b59' else 'play'
-        type_name = series.get('rootName', '') or series.get('categoryName', '')
-        remark = (series.get('latest_episode_name', '') or
-                  series.get('latest_episode_shortname', '') or
-                  ('更新至' + str(series.get('episode_count', ''))) if series.get('episode_count') else '')
-        released_at = series.get('released_at')
-        vod_year = ''
-        if released_at:
-            try:
-                from datetime import datetime
-                vod_year = str(datetime.fromtimestamp(released_at).year)
-            except:
-                pass
-        stars = series.get('stars', {}) or {}
-        return {
-            'vod_id': route + '$' + series_id,
-            'vod_name': series.get('name', '') or fallback_name,
-            'vod_pic': self.pick_pic(series),
-            'vod_remarks': remark,
-            'vod_year': vod_year,
-            'type_name': type_name,
-            'vod_content': series.get('description', ''),
-            'vod_actor': self.join_stars(stars.get('actor', []) or []),
-            'vod_director': self.join_stars(stars.get('director', []) or [])
-        }
-
-    def make_vod_from_card(self, card):
-        """从card对象构建vod字典（搜索用）"""
-        if not card:
-            return None
-        series = card.get('series') or card.get('target') or card
-        fallback = card.get('name', '') or card.get('title', '')
-        vod = self.make_vod_from_series(series, fallback)
-        if not vod:
-            return None
-        if not vod['vod_name']:
-            vod['vod_name'] = fallback
-        if not vod['vod_pic']:
-            vod['vod_pic'] = (self.pick_pic(card) or
-                              ((card.get('image', {}) or {}).get('poster', '')) or
-                              ((card.get('image', {}) or {}).get('landscape', '')))
-        if not vod['vod_remarks']:
-            vod['vod_remarks'] = card.get('description', '')
-        return vod
-
-    def unique_by_id(self, vod_list):
-        """按vod_id去重"""
-        seen = {}
-        result = []
-        for v in vod_list:
-            vid = v.get('vod_id', '') if v else ''
-            if vid and vid not in seen:
-                seen[vid] = 1
-                result.append(v)
-        return result
-
-    def fetch(self, url):
-        """发送GET请求"""
-        try:
-            resp = requests.get(url, headers=self.header, timeout=self.timeout)
-            resp.encoding = 'utf-8'
-            return resp.text
-        except Exception as e:
-            print(f"fetch error: {e}")
-            return ''
+        pic = poster or landscape
+        ep_count = s.get('episode_count', 0) or 0
+        latest = s.get('latest_episode_shortname', '') or s.get('latest_episode_name', '')
+        if ep_count and ep_count > 1:
+            remarks = f'更新至{latest}' if latest else f'{ep_count}集'
+        elif ep_count == 1:
+            remarks = '全1集'
+        else:
+            remarks = latest
+        return {'vod_id': sid, 'vod_name': name, 'vod_pic': pic, 'vod_remarks': remarks}
 
     def homeContent(self, filter):
-        """首页推荐"""
         result = {'class': [], 'list': []}
         for name, cid in zip(self.class_names, self.class_urls):
             result['class'].append({'type_name': name, 'type_id': cid})
-
-        # 默认加载电视剧列表
-        url = f"{self.host}/drama/62c670dc1dca2d424404499c"
-        html = self.fetch(url)
-        nuxt = self.get_nuxt_data(html)
-        if nuxt:
-            try:
-                store = nuxt.get('state', {}).get('pageList', {}).get('dramaSeriesLists', {})
-                data = store.get('62c670dc1dca2d424404499c', {})
-                series_list = data.get('series', [])
-                vods = []
-                for s in series_list:
-                    v = self.make_vod_from_series(s)
-                    if v:
-                        vods.append(v)
-                result['list'] = self.unique_by_id(vods)
-            except Exception as e:
-                print(f"homeContent parse error: {e}")
+        data = self._api_get('/vod/v1/series', {'root_id': self.cats['drama'][0], 'category_id': self.cats['drama'][1], 'page': 1, 'size': 24, 'hl': 'zh_CN'})
+        if data:
+            result['list'] = [self._make_vod(s) for s in data.get('series', [])]
         return result
 
     def homeVideoContent(self):
-        """首页视频内容"""
         return {}
 
     def categoryContent(self, tid, pg, filter, extend):
-        """分类内容"""
-        result = {'list': [], 'page': int(pg), 'pagecount': 999, 'limit': 24, 'total': 999999}
-        parts = tid.split('/')
-        alias = parts[0]
-        cid = parts[1] if len(parts) > 1 else ''
-        url = f"{self.host}/{tid}"
-        if int(pg) > 1:
-            url += f"?page={pg}"
-        html = self.fetch(url)
-        nuxt = self.get_nuxt_data(html)
-        if nuxt:
-            try:
-                store = nuxt.get('state', {}).get('pageList', {}).get(self.key_map.get(alias, ''), {})
-                data = store.get(cid, {})
-                series_list = data.get('series', [])
+        pg = int(pg)
+        result = {'list': [], 'page': pg, 'pagecount': 999, 'limit': 24, 'total': 0}
+
+        # 直播频道
+        if tid == 'live':
+            data = self._api_get('/live/v1/lives', {'root_id': '62ac4e2e4beefe535864769d', 'category_id': '62ac4e314beefe53586476c2', 'page': 1, 'size': 100, 'hl': 'zh_CN'})
+            if data:
                 vods = []
-                for s in series_list:
-                    v = self.make_vod_from_series(s)
-                    if v:
-                        vods.append(v)
-                result['list'] = self.unique_by_id(vods)
-            except Exception as e:
-                print(f"categoryContent parse error: {e}")
+                for ch in data.get('lives', []):
+                    ch_id = ch.get('id', '')
+                    ch_name = ch.get('name', '')
+                    images = ch.get('images', {}) or {}
+                    icon = (images.get('icon') or [''])[0] if images.get('icon') else ''
+                    vods.append({'vod_id': 'live@' + ch_id, 'vod_name': ch_name, 'vod_pic': icon, 'vod_remarks': '直播'})
+                result['list'] = vods
+                result['total'] = len(vods)
+                result['pagecount'] = 1
+            return result
+
+        # 点播
+        cat = self.cats.get(tid)
+        if not cat:
+            return result
+        root_id, cat_id = cat
+        data = self._api_get('/vod/v1/series', {'root_id': root_id, 'category_id': cat_id, 'page': pg, 'size': 24, 'hl': 'zh_CN'})
+        if data:
+            result['list'] = [self._make_vod(s) for s in data.get('series', [])]
+            result['total'] = data.get('total', 0)
+            result['pagecount'] = (result['total'] + 23) // 24
         return result
 
     def detailContent(self, ids):
-        """详情页"""
         if not ids or not ids[0]:
             return {'list': []}
         vid = ids[0]
-        parts = vid.split('$')
-        route = parts[0] if len(parts) > 1 else 'play'
-        sid = parts[1] if len(parts) > 1 else vid
-        url = f"{self.host}/{route}/{sid}"
-        html = self.fetch(url)
-        nuxt = self.get_nuxt_data(html)
-        if not nuxt:
-            return {'list': []}
-        try:
-            play = nuxt.get('state', {}).get('play', {})
-            info = play.get('SeriesInfo', {})
-            eps = play.get('EpisodeList', [])
-            vod = self.make_vod_from_series(info) or {'vod_id': vid}
-            tabs = 'ITalkBB短剧' if route == 'shortsPlay' else 'ITalkBB'
-            play_urls = []
-            for ep in eps:
-                name = ep.get('shortname', '') or ep.get('name', '')
-                ep_id = ep.get('id', '')
-                play_urls.append(f"{name}${route}@{sid}@{ep_id}")
-            vod['vod_id'] = vid
-            vod['vod_name'] = info.get('name', '') or vod.get('vod_name', '')
-            vod['vod_pic'] = self.pick_pic(info) or vod.get('vod_pic', '')
-            vod['type_name'] = info.get('rootName', '') or info.get('categoryName', '') or vod.get('type_name', '')
-            vod['vod_content'] = info.get('description', '') or vod.get('vod_content', '')
-            stars = info.get('stars', {}) or {}
-            vod['vod_actor'] = self.join_stars(stars.get('actor', []) or [])
-            vod['vod_director'] = self.join_stars(stars.get('director', []) or [])
-            vod['vod_remarks'] = (info.get('latest_episode_name', '') or
-                                  info.get('latest_episode_shortname', '') or
-                                  vod.get('vod_remarks', ''))
-            vod['vod_play_from'] = tabs
-            vod['vod_play_url'] = '#'.join(play_urls)
-            return {'list': [vod]}
-        except Exception as e:
-            print(f"detailContent parse error: {e}")
-            return {'list': []}
+
+        # 直播频道
+        if vid.startswith('live@'):
+            ch_id = vid.replace('live@', '')
+            stream = self._get_live_stream(ch_id)
+            return {'list': [{
+                'vod_id': vid, 'vod_name': ch_id, 'vod_pic': '',
+                'vod_play_from': 'ITalkBB直播',
+                'vod_play_url': f'直播${stream}' if stream else '',
+            }]}
+
+        # 点播
+        series_data = self._api_get(f'/vod/v1/series/{vid}', {'hl': 'zh_CN'})
+        s = (series_data or {}).get('series', {})
+        name = s.get('name', '')
+        desc = s.get('description', '')
+        images = s.get('images', {}) or {}
+        pic = (images.get('poster') or [''])[0] if images.get('poster') else ''
+        stars = s.get('stars', {}) or {}
+        actor = '/'.join([a.get('name', '') for a in (stars.get('actor') or [])[:5]])
+        director = '/'.join([d.get('name', '') for d in (stars.get('director') or [])])
+
+        eps_data = self._api_get(f'/vod/v1/series/{vid}/episodes', {'hl': 'zh_CN'})
+        eps = eps_data if isinstance(eps_data, list) else (eps_data or {}).get('episodes', [])
+
+        play_urls = []
+        for ep in eps:
+            ep_name = ep.get('shortname', '') or ep.get('name', '') or ep.get('id', '')[-4:]
+            ep_id = ep.get('id', '')
+            play_urls.append(f'{ep_name}$play@{vid}@{ep_id}')
+
+        if not play_urls:
+            play_urls.append(f'播放$play@{vid}@')
+
+        return {'list': [{
+            'vod_id': vid, 'vod_name': name, 'vod_pic': pic,
+            'vod_remarks': '', 'vod_year': '', 'type_name': '',
+            'vod_content': desc, 'vod_actor': actor, 'vod_director': director,
+            'vod_play_from': 'ITalkBB', 'vod_play_url': '#'.join(play_urls),
+        }]}
 
     def searchContent(self, key, quick, pg="1"):
-        """搜索"""
-        url = f"{self.host}/?keyword={key}"
-        html = self.fetch(url)
-        nuxt = self.get_nuxt_data(html)
-        vod_list = []
-        if nuxt:
-            try:
-                data = nuxt.get('data', [{}])[0]
-                banners = data.get('bannerData', []) or []
-                groups = data.get('serverGroupDataList', []) or []
-                for card in banners:
-                    v = self.make_vod_from_card(card)
-                    if v:
-                        vod_list.append(v)
-                for g in groups:
-                    for card in (g.get('list', []) or []):
-                        v = self.make_vod_from_card(card)
-                        if v:
-                            vod_list.append(v)
-            except Exception as e:
-                print(f"searchContent parse error: {e}")
-        # 客户端过滤
-        filtered = []
-        for v in vod_list:
-            if not v or not v.get('vod_name'):
-                continue
-            text = ' '.join([v.get('vod_name', ''), v.get('vod_remarks', ''),
-                             v.get('vod_content', ''), v.get('type_name', '')])
-            if key in text:
-                filtered.append(v)
-        return {'list': self.unique_by_id(filtered)}
+        result = {'list': []}
+        for tid in self.cats:
+            cat = self.cats[tid]
+            data = self._api_get('/vod/v1/series', {'root_id': cat[0], 'category_id': cat[1], 'page': 1, 'size': 50, 'hl': 'zh_CN'})
+            if data:
+                for s in data.get('series', []):
+                    if key in s.get('name', ''):
+                        result['list'].append(self._make_vod(s))
+        seen = set()
+        unique = []
+        for v in result['list']:
+            if v['vod_id'] not in seen:
+                seen.add(v['vod_id'])
+                unique.append(v)
+        result['list'] = unique
+        return result
 
     def playerContent(self, flag, id, vipFlags):
-        """播放"""
+        # 直播: 直接用m3u8地址
+        if id.startswith('live@'):
+            m3u8 = id.replace('live@', '')
+            if m3u8.startswith('http'):
+                return {'parse': 0, 'url': m3u8, 'header': {}, 'playUrl': ''}
+            stream = self._get_live_stream(m3u8)
+            return {'parse': 0, 'url': stream, 'header': {}, 'playUrl': ''}
+        # m3u8直链（从detailContent传过来的）
+        if id.startswith('http'):
+            return {'parse': 0, 'url': id, 'header': {}, 'playUrl': ''}
+        # 点播
         parts = id.split('@')
         route = parts[0] if len(parts) > 1 else 'play'
         sid = parts[1] if len(parts) > 1 else ''
         eid = parts[2] if len(parts) > 2 else ''
-        url = f"{self.host}/{route}/{sid}"
+        url = f'{self.host}/{route}/{sid}'
         if eid:
-            url += f"?ep={eid}"
-        return {
-            'jx': 0,
-            'parse': 1,
-            'url': url,
-            'header': self.header
-        }
+            url += f'?ep={eid}'
+        return {'parse': 1, 'url': url, 'header': self.header, 'playUrl': ''}
+
+    def fetch(self, url):
+        try:
+            resp = requests.get(url, headers=self.header, timeout=self.timeout)
+            resp.encoding = 'utf-8'
+            if resp.status_code == 200:
+                return resp.text
+            return None
+        except:
+            return None
 
     def localProxy(self, param):
         return None
