@@ -59,7 +59,7 @@
             "name": "韩圈｜APP",
             "type": 3,
             "api": "csp_Hxq",
-            "ext": "https://fishapi.wya6.com/fish/fishhxq.php"
+            "ext": "http://www.小不点.com/api/2026/fishhxq.php"
         },
         {
             "key": "听心99",

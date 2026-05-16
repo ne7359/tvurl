@@ -1,5 +1,5 @@
 {
-  "spider": "./jar/spider.jar;md5;6f39af04528cd088855ea9c871d417f1",
+  "spider": "./jar/spider.jar;md5;f4eb5166695f6949a6de6fd63e2fc1e0",
   "lives": [
     {"name": "migu","type": 0,"url": "https://develop202.github.io/migu_video/interface.txt","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
     {"name": "live","type": 0,"url": "https://epg.pw/test_channels.m3u","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
@@ -19,7 +19,7 @@
     {"key": "qiletv","name": "奇乐影视","type": 3,"api": "csp_XBPQ","searchable": 1,"quickSearch": 1,"filterable": 1,"changeable": 1,"ext": "./json/奇乐.json","header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "热播影视","name": "热播｜APP","type": 3,"api": "csp_AppRJ","searchable": 1,"quickSearch": 1,"filterable": 0,"ext": {"url": "http://v.rbotv.cn"}},
     {"key": "三秋影视","name": "三秋｜APP","type": 3,"api": "csp_App3Q"},
-    {"key": "韩圈","name": "韩圈｜APP","type": 3,"api": "csp_Hxq","ext": "https://fishapi.wya6.com/fish/fishhxq.php"},
+    {"key": "韩圈","name": "韩圈｜APP","type": 3,"api": "csp_Hxq","ext": "http://www.小不点.com/api/2026/fishhxq.php"},
     {"key": "听心99","name": "听心｜APP","type": 3,"api": "csp_App99","ext": {"host": "https://api.12321app.com/api","LoginPath": "/app/log","appkey": "a0a18659a9977a47e53442cd084b536c","versionName": "2.8.1","name": "听心视频","package": "com.iksp.adsys.jjsp","buildNumber": "2001","buildSignature": "03DD38CE4C3D62D0F0DEFACC06768D14EB382C7BD77A05B2EBF4D66E154A0D47"}},
     {"key": "橙子99","name": "橙子丨APP","type": 3,"api": "csp_App99","ext": {"host": "http://113.31.180.218:19987/app/bn","LoginPath": "/app/log","appkey": "6e8f3764a0644f3686ab5cdd57bcdf48","versionName": "4.3.1","name": "小橙子","package": "com.xchengzix.app","buildNumber": "2001","buildSignature": "99DA983CF878CEC016616175464A91A94775E20A489F07F76FCDEA1A0F2B6B45"}},
     {"key": "追番99","name": "追番｜APP","type": 3,"api": "csp_App99","ext": {"host": "https://api.hboqy.cn.hboqy.cn/api","LoginPath": "/app/log","appkey": "a0a18659a9977a47e53442cd084b536c","versionName": "6.1.7","name": "追番达人","package": "com.android.packageinstaller","buildNumber": "2002","buildSignature": "A40DA80A59D170CAA950CF15C18C454D47A39B26989D8B640ECD745BA71BF5DC"}},
