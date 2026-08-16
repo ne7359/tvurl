@@ -15,7 +15,7 @@ class DoubanSpider extends Spider {
     constructor() {
         super();
         this.siteUrl = 'https://frodo.douban.com/api/v2'
-        this.apiKey = "0ac44ae016490db2204ce0a042db2916"
+        this.apiKey = "" // Configure API key via environment or external config, do not hardcode
         this.UserAgents = ["api-client/1 com.douban.frodo/7.22.0.beta9(231) Android/23 product/Mate 40 vendor/HUAWEI model/Mate 40 brand/HUAWEI  rom/android  network/wifi  platform/AndroidPad", "api-client/1 com.douban.frodo/7.18.0(230) Android/22 product/MI 9 vendor/Xiaomi model/MI 9 brand/Android  rom/miui6  network/wifi  platform/mobile nd/1", "api-client/1 com.douban.frodo/7.1.0(205) Android/29 product/perseus vendor/Xiaomi model/Mi MIX 3  rom/miui6  network/wifi  platform/mobile nd/1", "api-client/1 com.douban.frodo/7.3.0(207) Android/22 product/MI 9 vendor/Xiaomi model/MI 9 brand/Android  rom/miui6  network/wifi platform/mobile nd/1"]
     }
 
@@ -569,7 +569,7 @@ class DoubanSpider extends Spider {
 
     async setSearch(wd, quick, pg) {
         let _api_url = "https://frodo.douban.com/api/v2"
-        let _api_key = "0dad551ec0f84ed02907ff5c42e8ec70"
+        let _api_key = "" // Configure API key via environment or external config, do not hardcode
         let url = _api_url + "/search/movie"
         let date = new Date()
         let ts = date.getFullYear().toString() + ('0' + (date.getMonth() + 1)).slice(-2).toString() + date.getDate().toString()
