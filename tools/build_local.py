@@ -28,7 +28,8 @@ class TVBox本地构建器:
         self.数据 = None
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'okhttp/3.12.0',
+            'Accept-Encoding': 'gzip, deflate'
         })
 
     def 加载数据(self):
@@ -121,33 +122,74 @@ class TVBox本地构建器:
         return False, None
 
     def 下载spider(self):
-        """下载 spider 文件"""
+        """下载 spider 文件，支持多种备用方案"""
         spider_url = self.数据.get('spider', '')
         if not spider_url:
             print("✗ 未找到 spider 配置")
             return False
 
-        # 提取 URL（去掉 ;md5;xxx 部分）
-        url = spider_url.split(';')[0]
+        # 提取 URL 和 MD5（去掉 ;md5;xxx 部分）
+        parts = spider_url.split(';')
+        url = parts[0]
+        expected_md5 = parts[2] if len(parts) > 2 else ''
         spider_path = self.输出目录 / 'spider.jar'
 
         print(f"\n=== 下载 Spider ===")
         url = self.替换代理域名(url)
 
+        # 方案1: 通过 CF Worker 代理下载（优先）
+        cf_proxy = 'https://wild-butterfly-88a5.juestnow.workers.dev'
         try:
-            print(f"  下载: {url}")
+            proxy_url = f"{cf_proxy}?q={url}"
+            print(f"  下载(cf-proxy): {proxy_url[:80]}...")
+            resp = self.session.get(proxy_url, timeout=60, allow_redirects=True)
+            resp.raise_for_status()
+            content = resp.content
+            if len(content) > 1000 and content[:2] == b'PK':
+                with open(spider_path, 'wb') as f:
+                    f.write(content)
+                md5 = self.计算MD5(spider_path)
+                print(f"  ✓ cf-proxy保存到: {spider_path}")
+                print(f"  MD5: {md5}")
+                self.数据['spider'] = f"./spider.jar;md5;{md5}"
+                return True
+            else:
+                print(f"  ✗ cf-proxy返回内容非有效jar (大小: {len(content)})")
+        except Exception as e:
+            print(f"  ✗ cf-proxy下载失败: {e}")
+
+        # 方案2: 用 requests 直接下载
+        try:
+            print(f"  下载(requests): {url}")
             resp = self.session.get(url, timeout=30, allow_redirects=True)
             resp.raise_for_status()
             with open(spider_path, 'wb') as f:
                 f.write(resp.content)
-            print(f"  ✓ 保存到: {spider_path}")
             md5 = self.计算MD5(spider_path)
+            print(f"  ✓ 保存到: {spider_path}")
             print(f"  MD5: {md5}")
             self.数据['spider'] = f"./spider.jar;md5;{md5}"
             return True
         except Exception as e:
-            print(f"  ✗ 下载失败: {e}")
-            return False
+            print(f"  ✗ requests下载失败: {e}")
+
+        # 方案3: 使用已有的 spider.jar（从上级目录查找）
+        import shutil
+        for candidate in [Path('../xiaosa/spider.jar'), Path('../jar/spider.jar'), Path('spider.jar')]:
+            candidate = candidate.resolve() if not candidate.is_absolute() else candidate
+            if candidate.exists() and candidate.stat().st_size > 1000:
+                print(f"  使用已有文件: {candidate}")
+                shutil.copy2(candidate, spider_path)
+                md5 = self.计算MD5(spider_path)
+                print(f"  ✓ 复制到: {spider_path}")
+                print(f"  MD5: {md5}")
+                if expected_md5 and md5 != expected_md5:
+                    print(f"  ⚠️ MD5不匹配 (期望: {expected_md5})")
+                self.数据['spider'] = f"./spider.jar;md5;{md5}"
+                return True
+
+        print(f"  ✗ 所有下载方案均失败，spider.jar 未生成")
+        return False
 
     def 是URL(self, 路径):
         """判断是否为URL"""
