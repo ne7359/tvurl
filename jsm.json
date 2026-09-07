@@ -1,5 +1,5 @@
 {
-  "spider": "./jar/spider.jar;md5;ac037e008306b2f338c759a8968cd067",
+  "spider": "./jar/spider.jar;md5;820f32b6aa7df3d4bd59aa432df3b732",
   "lives": [
     {"name": "migu","type": 0,"url": "https://develop202.github.io/migu_video/interface.txt","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
     {"name": "live","type": 0,"url": "https://epg.pw/test_channels.m3u","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
@@ -103,7 +103,7 @@
     {"key": "UC网盘","name": "UC • 网盘","type": 3,"api": "csp_PanUC","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
     {"key": "百度网盘","name": "百度 • 网盘","type": 3,"api": "csp_PanBaidu","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
     {"key": "迅雷云盘","name": "迅雷 • 云盘","type": 3,"api": "csp_PanXunlei","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
-    {"key": "光鸭网盘","name": "光鸭 • 网盘","type": 3,"api": "csp_PanGuangya","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
+    {"key": "光鸭云盘","name": "光鸭 • 云盘","type": 3,"api": "csp_PanGuangya","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
     {"key": "天翼云盘","name": "天翼 • 云盘","type": 3,"api": "csp_PanTianyi","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
     {"key": "123云盘","name": "123 • 云盘","type": 3,"api": "csp_Pan123","searchable": 0,"filterable": 0,"changeable": 0,"style": {"type": "list","ratio": 1.433}},
     {"key": "聚合","name": "聚合 • 搜索","type": 3,"api": "csp_JuheSo","searchable": 1,"quickSearch": 0,"filterable": 0,"timeout": 60},
