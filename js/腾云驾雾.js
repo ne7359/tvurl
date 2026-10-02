@@ -751,180 +751,97 @@ var rule = {
 
     推荐: '.list_item;img&&alt;img&&src;a&&Text;a&&data-float',
     一级: $js.toString(() => {
-        let d = [];
         let fyclass = MY_CATE;
         let fypage = MY_PAGE;
-        let fl = MY_FL;
-
-        // 短剧分类特殊处理
-        if (fyclass === 'mini_series') {
-            let apiUrl = 'https://pbaccess.video.qq.com/trpc.vector_layout.page_view.PageService/getPage?video_appid=3000010&vversion_platform=2';
-            
-            // 构建筛选条件
-            let filterParts = [];
-            if (fl.prefer) filterParts.push('prefer=' + fl.prefer);
-            if (fl.identity) filterParts.push('identity=' + fl.identity);
-            if (fl.attraction) filterParts.push('attraction=' + fl.attraction);
-            if (fl.story) filterParts.push('story=' + fl.story);
-            let filterValue = filterParts.length > 0 ? filterParts.join('&') : 'sort=75';
-
-            // 获取或初始化分页上下文
-            let pageContext = null;
-            let cacheKey = 'mini_series_ctx_' + filterValue;
-            
-            if (fypage > 1) {
-                try {
-                    let cachedContext = storage0.getItem(cacheKey);
-                    if (cachedContext) {
-                        let contextObj = JSON.parse(cachedContext);
-                        if (contextObj.page === fypage - 1 && contextObj.nextContext) {
-                            pageContext = contextObj.nextContext;
-                        } else if (fypage === 1) {
-                            pageContext = null;
-                        }
-                    }
-                } catch (e) {
-                    log('读取缓存失败: ' + e.message);
-                }
-            } else {
-                // 第一页清除缓存
-                try {
-                    storage0.setItem(cacheKey, '');
-                } catch (e) {}
+        let fl = MY_FL || {};
+        // 腾讯频道“全部”列表接口（旧 /x/bu/pagesheet/list 已 404）。MVLPage 返回
+        // 最新数据；page_context 续页；短剧与其它频道同接口。
+        let channelMap = {
+            movie: '100173', tv: '100113', mini_series: '120188',
+            variety: '100109', cartoon: '100119', child: '100150', doco: '100105'
+        };
+        let channelId = channelMap[fyclass] || fyclass;
+        let apiUrl = 'https://pbaccess.video.qq.com/trpc.multi_vector_layout.mvl_controller.MVLPageHTTPService/getMVLPage?&vversion_platform=18';
+        let apiHdr = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+            'Content-Type': 'application/json',
+            'Origin': 'https://v.qq.com',
+            'Referer': 'https://v.qq.com/tv-series-list/v-index.html'
+        };
+        // filter_params：新接口键（sort/itype/iyear/iarea/characteristic…）
+        let flKeys = ['sort', 'itype', 'iyear', 'iarea', 'characteristic', 'ipay', 'producer', 'award', 'theater', 'anime_status', 'item'];
+        let fparts = [];
+        flKeys.forEach(function(k) {
+            if (fl[k] !== undefined && fl[k] !== null && fl[k] !== '' && fl[k] !== '-1') {
+                fparts.push(k + '=' + fl[k]);
             }
-
-            let requestBody = {
-                "page_params": {
-                    "page_type": "channel",
-                    "page_id": "120188",
-                    "scene": "channel",
-                    "new_mark_label_enabled": "1",
-                    "vl_to_mvl": "1",
-                    "free_watch_trans_info": "{\"ad_frequency_control_time_list\":{}}",
-                    "ad_exp_ids": "100000",
-                    "skip_privacy_types": "0",
-                    "support_click_scan": "1"
-                },
-                "page_bypass_params": {
-                    "params": {
-                        "platform_id": "2",
-                        "caller_id": "3000010",
-                        "data_mode": "default",
-                        "user_mode": "default",
-                        "page_type": "channel",
-                        "page_id": "120188",
-                        "scene": "channel",
-                        "new_mark_label_enabled": "1"
-                    },
-                    "scene": "channel",
-                    "app_version": ""
-                },
-                "page_context": pageContext
-            };
-
-            // 如果有筛选条件，添加filter_value
-            if (filterParts.length > 0) {
-                requestBody.page_bypass_params.params.filter_value = filterValue;
-            }
-
-            try {
-                let html = request(apiUrl, {
-                    body: JSON.stringify(requestBody),
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-                        'Content-Type': 'application/json',
-                        'Origin': 'https://v.qq.com',
-                        'Referer': 'https://v.qq.com/channel/mini_series'
-                    },
-                    method: 'POST'
-                });
-
-                let json = JSON.parse(html);
-                
-                if (json.ret === 0 && json.data && json.data.CardList) {
-                    // 保存下一页的上下文
-                    if (json.data.has_next_page && json.data.page_context) {
-                        try {
-                            storage0.setItem(cacheKey, JSON.stringify({
-                                page: fypage,
-                                nextContext: json.data.page_context
-                            }));
-                        } catch (e) {
-                            log('保存缓存失败: ' + e.message);
-                        }
-                    }
-
-                    // 解析视频列表
-                    json.data.CardList.forEach(function(card) {
-                        // 处理筛选卡片（跳过）
-                        if (card.type === 'pc_hot_filter') {
-                            return;
-                        }
-                        
-                        // 处理视频列表卡片
-                        if (card.type === '_eco_video_staggered' && card.children_list && card.children_list.card_list) {
-                            let cards = card.children_list.card_list.cards || [];
-                            cards.forEach(function(item) {
-                                if (item.type === '_eco_video_staggered_drama_item' && item.params) {
-                                    let params = item.params;
-                                    let cid = params.cid || '';
-                                    let posterInfo = {};
-                                    let markInfo = {};
-                                    
-                                    try {
-                                        posterInfo = JSON.parse(params.poster || '{}');
-                                    } catch (e) {}
-                                    
-                                    try {
-                                        markInfo = JSON.parse(params.mark_label_list || '{}');
-                                    } catch (e) {}
-
-                                    let title = posterInfo.title || '';
-                                    let img = posterInfo.image_url || '';
-                                    let remarks = '';
-                                    
-                                    if (markInfo.mark_label_list && markInfo.mark_label_list.length > 0) {
-                                        remarks = markInfo.mark_label_list[0].prime_text || '';
-                                    }
-
-                                    if (cid && title) {
-                                        d.push({
-                                            title: title,
-                                            img: img,
-                                            desc: remarks,
-                                            url: cid
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            } catch (e) {
-                log('短剧请求失败: ' + e.message);
-            }
-
-            setResult(d);
-        } else {
-            // 其他分类使用原有的HTML解析逻辑
-            let html = fetch(input, fetch_params);
-            let $ = pdfa(html, '.list_item');
-            $.forEach(function(it) {
-                let item = pdfh(it, 'a&&data-float');
-                let title = pdfh(it, 'img&&alt');
-                let img = pdfh(it, 'img&&src');
-                let desc = pdfh(it, 'a&&Text');
-                if (item && title) {
-                    d.push({
-                        title: title,
-                        img: img,
-                        desc: desc,
-                        url: item
-                    });
-                }
-            });
-            setResult(d);
+        });
+        if (fl.feature !== undefined && fl.feature !== '' && fl.feature !== '-1' && fparts.join('&').indexOf('itype=') < 0) {
+            fparts.push('itype=' + fl.feature);
         }
+        if (fparts.length === 0) fparts.push('sort=75');
+        let filterParams = fparts.join('&');
+        // page_context 不透明，且端内 storage 不保证跨请求持久：从第 1 页顺链
+        // 取到目标页（用户通常只看前几页，代价可控）。
+        let ctx = null;
+        let resp = null;
+        let target = fypage > 1 ? fypage : 1;
+        for (let i = 1; i <= target; i++) {
+            let reqBody = {
+                page_params: {
+                    channel_id: channelId,
+                    filter_params: filterParams,
+                    page_id: 'channel_list',
+                    page_type: 'operation'
+                },
+                page_context: ctx || null
+            };
+            resp = JSON.parse(request(apiUrl, {
+                body: JSON.stringify(reqBody),
+                headers: apiHdr,
+                method: 'POST'
+            }));
+            ctx = (resp.data && resp.data.page_context) || null;
+            if (!ctx && i < target) break; // 已到末页
+        }
+        let data = resp.data || {};
+        // 递归收集条目（searchlist_poster_card：params.cid/title/new_pic_vt…）
+        let items = [];
+        let walk = function(o) {
+            if (!o || typeof o !== 'object') return;
+            if (Array.isArray(o)) {
+                for (let i = 0; i < o.length; i++) walk(o[i]);
+                return;
+            }
+            let p = o.params;
+            if (p && typeof p === 'object' && p.cid) {
+                let title = p.title || p.name || '';
+                if (title) {
+                    let img = p.new_pic_vt || p.new_pic_hz || p.image_url || p.pic || p.cover || '';
+                    if (typeof img === 'string' && img.indexOf('http://') === 0) img = 'https://' + img.slice(7);
+                    let desc = '';
+                    try {
+                        if (p.chnlist_search_label) {
+                            let m = typeof p.chnlist_search_label === 'string' ? JSON.parse(p.chnlist_search_label) : p.chnlist_search_label;
+                            if (m && m.length > 0) desc = m[0].label || '';
+                        }
+                    } catch (e) {}
+                    if (!desc) desc = p.main_genre || p.area_name || '';
+                    items.push({ title: title, img: img, desc: desc, url: p.cid });
+                }
+            }
+            for (let k in o) walk(o[k]);
+        };
+        walk(data.modules || data);
+        let seen = {};
+        let dd = [];
+        items.forEach(function(it) {
+            if (!seen[it.url]) {
+                seen[it.url] = 1;
+                dd.push(it);
+            }
+        });
+        setResult(dd);
     }),
     二级: $js.toString(() => {
         VOD = {};
